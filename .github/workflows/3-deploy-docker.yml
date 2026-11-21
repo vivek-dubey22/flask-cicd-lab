@@ -25,7 +25,7 @@ jobs:
         run: pytest -v
 
   build-and-push:
-    needs: test # no image is built if tests fail
+    # Removed 'needs: test' so this runs in parallel with the test job
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -45,7 +45,9 @@ jobs:
           build-args: APP_VERSION=${{ github.sha }}
 
   deploy:
-    needs: build-and-push # runs only after the image is on Docker Hub
+    # Kept 'needs: build-and-push' so it waits for the image to exist
+    # Added 'test' so it still won't deploy broken code if tests fail
+    needs: [test, build-and-push]
     runs-on: ubuntu-latest
     steps:
       - name: Pull and run the new container on EC2
